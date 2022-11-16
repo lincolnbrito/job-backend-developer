@@ -13,7 +13,7 @@ class UpdateProductRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,11 @@ class UpdateProductRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name' => ['required', 'string', 'unique:products,name,'.$this->id],
+            'price' => ['required', 'numeric'],
+            'description' => ['required', 'string'],
+            'category' => ['required', 'string'],
+            'image_url' => ['nullable', 'url']
         ];
     }
 }
