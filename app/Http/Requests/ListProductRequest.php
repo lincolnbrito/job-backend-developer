@@ -25,7 +25,7 @@ class ListProductRequest extends FormRequest
     {
         return [
             'search' => 'nullable',
-            'category' => 'nullable',
+            'category' => 'nullable|string',
             'has_image' => 'nullable|boolean',
         ];
     }

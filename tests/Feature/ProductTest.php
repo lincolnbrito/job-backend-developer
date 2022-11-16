@@ -25,34 +25,60 @@ class ProductTest extends TestCase
         $response->assertExactJson([]);
     }
 
-    public function test_it_should_filter_products_by_name_and_category()
+    /**
+     * @dataProvider provideSearch
+     */
+    public function test_it_should_filter_products_by_name_and_category(
+        $product,
+        $category,
+        $searchTerm,
+        $expectFiltered,
+        $expectTotalOnDatabase
+    )
     {
-        $product = Product::factory()->create();
+        Product::factory()
+            ->count($product['count'])
+            ->sequence(fn ($sequence) => ['name' => $product['name'].$sequence->index])
+            ->create([
+               'category' => $category['name']
+            ]);
 
-        $response = $this->get(route('api.products.index', ['search' => $product->name], false));
+        Product::factory()
+            ->count($category['count'])
+            ->create([
+                'category' => $category['name']
+            ]);
 
-        $response->assertJson([$product->toArray()]);
+        $response = $this->get(route('api.products.index', ['search' => $searchTerm], false));
+        $response->assertJsonCount($expectFiltered);
+
+        $this->assertDatabaseCount('products', $expectTotalOnDatabase);
     }
 
+    /**
+     * @dataProvider provideFilterByCategory
+     */
     public function test_it_should_filter_products_by_category(
-
+        $categoryToFind,
+        $countCategory,
+        $countOtherCategories,
+        $expectFiltered,
+        $expectTotalOnDatabase
     )
     {
         $products = Product::factory()
-            ->count(10)
-            ->state(new Sequence(
-                ['category' => $this->faker()->word],
-                ['category' => $this->faker()->word]
-            ))
+            ->count($countCategory)
+            ->create(['category' => $categoryToFind]);
+        
+        $productsOtherCategory = Product::factory()
+            ->count($countOtherCategories)
             ->create();
-
-        $categoryToFind = $products->first()->category;
 
         $response = $this->get(route('api.products.index', ['category' => $categoryToFind], false));
         
-        $response
-            ->assertJsonCount(5)
-            ->assertJsonFragment(['category' => $categoryToFind]);
+        $response->assertJsonCount($expectFiltered);
+        $this->assertEquals($expectTotalOnDatabase, $products->count() + $productsOtherCategory->count());
+        $this->assertDatabaseCount('products', $expectTotalOnDatabase);
     }
 
     /**
@@ -83,12 +109,40 @@ class ProductTest extends TestCase
         $this->assertDatabaseCount('products', $expectTotalOnDatabase);
     }
 
-    public function provideProductsCategory()
+    public function provideSearch()
+    {
+        return [
+            'search on product name' => [
+                'product' => ['name' => 'fake product', 'count' => 10], 
+                'category' => ['name' => 'fake category', 'count' => 20],
+                'search' => 'product',
+                'expectedFiltered' => 10,
+                'expectInDatabase' => 30
+            ],
+            'search on product name or category' => [
+                'product' => ['name' => 'fake product', 'count' => 10], 
+                'category' => ['name' => 'fake category', 'count' => 20],
+                'search' => 'fake',
+                'expectedFiltered' => 30,
+                'expectInDatabase' => 30
+            ],
+            'search not in product name or category' => [
+                'product' => ['name' => 'fake product', 'count' => 10], 
+                'category' => ['name' => 'fake category', 'count' => 20],
+                'search' => 'another term',
+                'expectedFiltered' => 0,
+                'expectInDatabase' => 30
+            ]
+        ];
+    }
+
+    public function provideFilterByCategory()
     {
         return [
             ['category #1', 15, 5, 15, 20],
-            ['category #2', 0, 41, 0, 41],
-            ['category #3', 20, 40, 20, 60]
+            ['category #2', 1, 41, 1, 42],
+            ['category #3', 20, 40, 20, 60],
+            [null, 0, 40, 40, 40]
         ];
     } 
 
@@ -107,7 +161,7 @@ class ProductTest extends TestCase
             'filter without image #2' => [
                 false, 22, 31, 31, 53
             ],
-            'return all #1' => [
+            'no filter' => [
                 null, 10, 2, 12, 12
             ]
         ];
