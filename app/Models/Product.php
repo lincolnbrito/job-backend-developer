@@ -10,6 +10,14 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'category',
+        'image_url'
+    ];
+
     public function newEloquentBuilder($query): ProductBuilder
     {
         return new ProductBuilder($query);
