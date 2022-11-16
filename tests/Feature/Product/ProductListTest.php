@@ -1,14 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Product;
 
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
-class ProductTest extends TestCase
+class ProductListTest extends TestCase
 {
     use RefreshDatabase;
     use WithFaker;
@@ -20,7 +19,7 @@ class ProductTest extends TestCase
 
     public function test_it_should_return_empty_list()
     {
-        $response = $this->get(route('api.products.index', [], false));
+        $response = $this->getJson(route('api.products.index', [], false));
 
         $response->assertExactJson([]);
     }
@@ -49,7 +48,7 @@ class ProductTest extends TestCase
                 'category' => $category['name']
             ]);
 
-        $response = $this->get(route('api.products.index', ['search' => $searchTerm], false));
+        $response = $this->getJson(route('api.products.index', ['search' => $searchTerm], false));
         $response->assertJsonCount($expectFiltered);
 
         $this->assertDatabaseCount('products', $expectTotalOnDatabase);
@@ -74,7 +73,7 @@ class ProductTest extends TestCase
             ->count($countOtherCategories)
             ->create();
 
-        $response = $this->get(route('api.products.index', ['category' => $categoryToFind], false));
+        $response = $this->getJson(route('api.products.index', ['category' => $categoryToFind], false));
         
         $response->assertJsonCount($expectFiltered);
         $this->assertEquals($expectTotalOnDatabase, $products->count() + $productsOtherCategory->count());
@@ -101,7 +100,7 @@ class ProductTest extends TestCase
             ->withoutImage()
             ->create();
 
-        $response = $this->get(route('api.products.index', ['has_image' => $hasImage], false));
+        $response = $this->getJson(route('api.products.index', ['has_image' => $hasImage], false));
         
         $response->assertJsonCount($expectFiltered);
         
