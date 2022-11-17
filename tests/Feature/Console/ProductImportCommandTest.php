@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Console;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -27,12 +27,11 @@ class ProductImportCommandTest extends TestCase
     public function test_it_should_not_import_invalid_product()
     {
         Http::fake([
-            "{$this->baseUrl}/*" => Http::response([], 200),
+            "{$this->baseUrl}/products/*" => Http::response(null, 200),
         ]);
 
         $this->artisan("products:import", ["--id" => 1000])
-            ->expectsOutput('Product not found')
-            ->assertSuccessful();
+            ->expectsOutput('Product not found');
 
         $this->assertDatabaseCount('products', 0);
     }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Product;
 use App\Services\ExternalStoreApi\ExternalStoreApiService;
 use App\Services\ExternalStoreApi\ExternalStoreApiServiceInterface;
+use Exception;
 use Illuminate\Console\Command;
 
 class ProductImportCommand extends Command
@@ -39,23 +40,25 @@ class ProductImportCommand extends Command
 
     protected function handleSingleProduct()
     {
-        $productData = $this->apiService->fetchProduct($this->option('id'));
+        try {
+            $productData = $this->apiService->fetchProduct($this->option('id'));
 
-        if(!$productData) {
-            $this->warn('Product not found');
-            return;
+            $this->info('Importing product');
+
+            $product = Product::updateOrCreate([
+                'id' => $productData->id
+            ], [
+                ...get_object_vars($productData),
+                'name' => $productData->title
+            ]);
+
+            $this->info("Product: #{$product->id} '{$product->name}' imported with success");
+           
+        } catch( Exception $e) {
+            $this->warn($e->getMessage());
+            return Command::FAILURE;
         }
-
-        $this->info('Importing product');
-
-        $product = Product::updateOrCreate([
-            'id' => $productData->id
-        ], [
-            ...get_object_vars($productData),
-            'name' => $productData->title
-        ]);
-
-        $this->info("Product: #{$product->id} '{$product->name}' imported with success");
+        
     }
 
     protected function handleProductList()

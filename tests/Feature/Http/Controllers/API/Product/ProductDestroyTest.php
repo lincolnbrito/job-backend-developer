@@ -1,11 +1,9 @@
 <?php
 
-namespace Tests\Feature\Product;
+namespace Tests\Feature\Http\Controllers\API\Product;
 
-use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\Response;
 use Tests\TestCase;
 
 class ProductDestroyTest extends TestCase

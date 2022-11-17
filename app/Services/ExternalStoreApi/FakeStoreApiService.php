@@ -22,10 +22,14 @@ class FakeStoreApiService implements ExternalStoreApiServiceInterface
     public function fetchProducts(?array $query = null): mixed 
     {
         $response = $this->client->get('/products', $query);
+
+        if ($response->failed()) {
+            throw new \Exception('Could not fetch products');
+        }
        
         return array_map(function($product) {
             return new Product($product);
-        }, $response->throw()->json());
+        }, $response->json());
        
     }
 
@@ -36,14 +40,18 @@ class FakeStoreApiService implements ExternalStoreApiServiceInterface
     public function fetchProduct(int $id): Product | null
     {
         $response = $this->client->get("/products/$id");
-        
-        $productData = $response->throw()->json();
-        
-        if($productData) {
-            return new Product($productData);;
+
+        if ($response->failed()) {
+            throw new \Exception('Could not fetch product');
+        }
+
+        if ($response->json() == null) {
+            throw new \Exception('Product not found');
         }
         
-        return null;
+        $productData = $response->json();
+
+        return new Product($productData);;
     }
 
 }
