@@ -30,4 +30,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'external_store' => [
+        'endpoint' => env('EXTERNAL_STORE_ENDPOINT'),
+    ],
+
 ];
