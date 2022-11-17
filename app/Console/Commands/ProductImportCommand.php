@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Product;
 use App\Services\ExternalStoreApi\ExternalStoreApiService;
+use App\Services\ExternalStoreApi\ExternalStoreApiServiceInterface;
 use Illuminate\Console\Command;
 
 class ProductImportCommand extends Command
@@ -18,7 +19,7 @@ class ProductImportCommand extends Command
     {
         parent::__construct();
 
-        $this->apiService = new ExternalStoreApiService;
+        $this->apiService = app(ExternalStoreApiServiceInterface::class);
     }
 
     /**

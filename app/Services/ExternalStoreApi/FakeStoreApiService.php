@@ -5,7 +5,7 @@ namespace App\Services\ExternalStoreApi;
 use App\Services\ExternalStoreApi\Product;
 use Illuminate\Support\Facades\Http;
 
-class ExternalStoreApiService 
+class FakeStoreApiService implements ExternalStoreApiServiceInterface 
 {
     protected $client;
 
@@ -29,6 +29,10 @@ class ExternalStoreApiService
        
     }
 
+    /**
+     * @param integer $id
+     * @return Product | null
+     */
     public function fetchProduct(int $id): Product | null
     {
         $response = $this->client->get("/products/$id");
